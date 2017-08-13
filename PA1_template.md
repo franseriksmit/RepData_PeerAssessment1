@@ -4,13 +4,15 @@ This is the data-analysis for programming assignment 1 using  data from a person
 
 Step 1:load the necessary libraries and the data
 
-```{r message=FALSE}
+
+```r
 library(plyr)
 library(dplyr)
 library(lubridate)
 library(Hmisc)
 ```
-```{r}
+
+```r
 setwd("C:/Rwork/Activity")
 fileurl<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 filename<-"act.zip"
@@ -26,31 +28,66 @@ datatabel$interval<-paste(datatabel$interval,"00", sep="")
 ```
 What is mean total number of steps taken per day?  
 Histogram of the total number of steps taken each day
-```{r}
+
+```r
 datatabelcl<-na.omit(datatabel)
 sumtabelcl<-aggregate(x=datatabelcl["steps"], FUN=sum, by=list(datatabelcl$date))
 colnames(sumtabelcl)<-c("Date", "steps")
 hist(sumtabelcl$steps, xlab = "Total number of steps", main="Total number of steps")
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+
+```r
 mean(sumtabelcl$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(sumtabelcl$steps)
+```
+
+```
+## [1] 10765
 ```
 What is the average daily activity pattern?  
 Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days
-```{r}
+
+```r
 ## group steps per interval
 sumtabelcl2<-aggregate(x=datatabelcl["steps"], FUN=sum, by=list(datatabelcl$interval))
 colnames(sumtabelcl2)<-c("interval", "steps")
 ## convert interval to time
 sumtabelcl2$interval<-parse_date_time(sumtabelcl2$interval, "HMS")
 plot(steps~interval,sumtabelcl2, type="l")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+
+```r
 ##retrieve interval containing the maximum number of steps on average across all days
 format(sumtabelcl2[which.max(sumtabelcl2$steps),]$interval, format="%H%M")
 ```
+
+```
+## [1] "0835"
+```
 Imputing missing values  
 Missing values: the strategy used is by imputing the mean of steps by interval
-```{r}
+
+```r
 ## total number of missing values in the dataset
 sum(is.na(datatabel))
+```
+
+```
+## [1] 2304
+```
+
+```r
 ##Missing values are filled in using impute mean of steps by interval
 datatabelfilled<-ddply(datatabel, "interval", mutate, steps=impute(steps, mean))
 ## summarise datatabelfilled by date
@@ -59,13 +96,30 @@ sumtabelfilled<-aggregate(x=datatabelfilled["steps"], FUN=sum, by=list(datatabel
 colnames(sumtabelfilled)<-c("interval","steps")
 ## histogram total numbers of steps per day
 hist(sumtabelfilled$steps, xlab = "Total number of steps", main="Total number of steps")
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png)
+
+```r
 mean(sumtabelfilled$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(sumtabelfilled$steps)
+```
+
+```
+## [1] 10766.19
 ```
 The result of imputing missing values using the mean of the steps results in the fact that the mean and the median become equal.  
   
 Are there differences in activity patterns between weekdays and weekends?
-```{r}
+
+```r
 ## create weekend vector
 weekend<-c("zaterdag", "zondag")
 ## add $weekend column containig weekday or weekend
@@ -77,3 +131,5 @@ sumtabelfilledintwek$weekwork<-as.factor(sumtabelfilledintwek$weekwork)
 g<-ggplot(sumtabelfilledintwek, aes(interval, steps, group=1))
 g+geom_line()+facet_grid(weekwork~.)
 ```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
